@@ -1,0 +1,386 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Conexiones cineSphere4D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: hoja de taller. Esquema a lo ancho, luego notas, tabla de pines y consumo. */
+:root{
+  --bg:#eef0ec; --paper:#f8f9f6; --fg:#1d2420; --muted:#5b665f; --line:#c9cfc8;
+  --v12:#c8301f; --v5:#d07a10; --gnd:#2a2f2c; --sig:#1f63c8;
+  --pcb:#1f3f8a; --pcbtxt:#eef3ff; --term:#2f9a5a; --fan:#4a544e; --blk:#202422; --blktxt:#e8ece9;
+  --uln:#2d7a4a; --warn:#a4541a; --case:#dfe3e0; --v33:#7a3fb8; --acl:#8a4b1c; --acn:#2f6fb0; --ace:#2e8b3e;
+  --display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141816; --paper:#1b201d; --fg:#e4e9e5; --muted:#9aa59e; --line:#333b36;
+  --v12:#ff6a55; --v5:#f0a040; --gnd:#c9d1cc; --sig:#6aa7ff;
+  --pcb:#27489a; --pcbtxt:#eef3ff; --term:#36a865; --fan:#a9b4ad; --blk:#0d0f0e; --blktxt:#e8ece9;
+  --uln:#2f8a54; --warn:#f0a060; --case:#2a312d; --v33:#c08af0; --acl:#d08a50; --acn:#6aa7ff; --ace:#5cc070; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141816; --paper:#1b201d; --fg:#e4e9e5; --muted:#9aa59e; --line:#333b36;
+  --v12:#ff6a55; --v5:#f0a040; --gnd:#c9d1cc; --sig:#6aa7ff;
+  --pcb:#27489a; --pcbtxt:#eef3ff; --term:#36a865; --fan:#a9b4ad; --blk:#0d0f0e; --blktxt:#e8ece9;
+  --uln:#2f8a54; --warn:#f0a060; --case:#2a312d; --v33:#c08af0; --acl:#d08a50; --acn:#6aa7ff; --ace:#5cc070; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1480px;margin:0 auto;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:24px}
+h1{font-family:var(--display);font-size:clamp(28px,5vw,42px);font-weight:700;margin:0;line-height:1.1;text-wrap:balance}
+h2{font-family:var(--display);font-size:24px;font-weight:600;margin:0;text-wrap:balance}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+header{display:flex;flex-direction:column;gap:8px}
+header p{margin:0;max-width:68ch;color:var(--muted)}
+.sheet{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px;min-width:0}
+.scroll{overflow-x:auto}
+svg text{font-family:var(--mono)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:14px;color:var(--muted);margin-top:12px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{display:inline-block;width:22px;height:3px;border-radius:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:24px}
+.grid>section{display:flex;flex-direction:column;gap:12px;min-width:0}
+table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.pin{font-family:var(--mono);font-weight:600;color:var(--sig);white-space:nowrap}
+td.num{text-align:right;font-family:var(--mono);white-space:nowrap}
+tr.total td{font-weight:600;border-bottom:none}
+ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px}
+ol li{max-width:70ch}
+strong.w{color:var(--warn)}
+.small{font-size:14px;color:var(--muted);margin:0}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">cineSphere4D · esquema completo · ESP32-S2</span>
+  <h1>Conexiones de todo el sistema</h1>
+  <p>Fuente Radox 12 V 5 A (desde 127 V AC), buck XL4016 a 5 V, dos ventiladores en un solo AOD4184, 4 humidificadores ACEBOTT, motor 28BYJ-48 con ULN2003, servo, sensor de humedad DHT22 y ESP32-CAM en un lateral.</p>
+</header>
+
+<div class="sheet">
+  <div class="scroll">
+  <svg viewBox="0 0 1440 820" width="1440" style="max-width:none;display:block" role="img" aria-label="Esquema completo: fuente 12 V con fusible a buck XL4016 y módulo AOD4184 con dos ventiladores en paralelo; buck da 5 V a ESP32-S2, cuatro humidificadores, ULN2003 con motor paso a paso, servo, sensor DHT22 a 3.3 V y ESP32-CAM en el lateral con UART opcional; señales desde GPIO1 a GPIO13">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="var(--sig)"/></marker>
+      <g id="gnd"><path d="M0 0 V8 M-10 8 H10 M-6 13 H6 M-2 18 H2" stroke="var(--gnd)" stroke-width="2.2" fill="none"/></g>
+      <g id="fanIcon">
+        <circle r="40" fill="var(--paper)" stroke="var(--fan)" stroke-width="2.5"/>
+        <path d="M0 0 C6 -14 18 -26 30 -18 C20 -10 10 -4 0 0Z" fill="var(--fan)"/>
+        <path d="M0 0 C14 6 26 18 18 30 C10 20 4 10 0 0Z" fill="var(--fan)"/>
+        <path d="M0 0 C-6 14 -18 26 -30 18 C-20 10 -10 4 0 0Z" fill="var(--fan)"/>
+        <path d="M0 0 C-14 -6 -26 -18 -18 -30 C-10 -20 -4 -10 0 0Z" fill="var(--fan)"/>
+        <circle r="7" fill="var(--paper)" stroke="var(--fan)" stroke-width="2"/>
+      </g>
+      <g id="pinTop"><rect x="-4" y="-6" width="8" height="10" fill="var(--fg)"/></g>
+      <g id="hum">
+        <rect x="0" y="0" width="100" height="100" rx="5" fill="var(--blk)"/>
+        <text x="25" y="18" text-anchor="middle" font-size="11" font-weight="600" fill="var(--blktxt)">S</text>
+        <text x="70" y="18" text-anchor="middle" font-size="11" font-weight="600" fill="var(--blktxt)">V</text>
+        <text x="50" y="94" text-anchor="middle" font-size="11" font-weight="600" fill="var(--blktxt)">G</text>
+        <text x="50" y="44" text-anchor="middle" font-size="10" fill="var(--blktxt)">ACEBOTT</text>
+        <circle cx="50" cy="64" r="11" fill="none" stroke="#c9cfd4" stroke-width="2"/>
+        <circle cx="50" cy="64" r="4" fill="#c9cfd4"/>
+      </g>
+    </defs>
+
+    <!-- ========== 12 V ========== -->
+    <!-- Fuente Radox con bornera L N ⏚ V− V+ -->
+    <rect x="60" y="14" width="164" height="116" rx="4" fill="var(--case)" stroke="var(--fg)" stroke-width="2"/>
+    <g fill="var(--muted)" opacity=".35">
+      <circle cx="80" cy="30" r="3"/><circle cx="96" cy="30" r="3"/><circle cx="112" cy="30" r="3"/><circle cx="128" cy="30" r="3"/><circle cx="144" cy="30" r="3"/><circle cx="160" cy="30" r="3"/><circle cx="176" cy="30" r="3"/><circle cx="192" cy="30" r="3"/><circle cx="208" cy="30" r="3"/>
+    </g>
+    <text x="142" y="56" text-anchor="middle" font-size="14" font-weight="600" fill="var(--fg)">RADOX</text>
+    <text x="142" y="74" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">12 V DC · 5 A</text>
+    <rect x="66" y="90" width="152" height="40" rx="2" fill="var(--blk)"/>
+    <g font-size="10" font-weight="600" text-anchor="middle">
+      <text x="80" y="124" fill="#ff8a7a">L</text><text x="110" y="124" fill="#ff8a7a">N</text>
+      <text x="140" y="124" fill="var(--blktxt)">⏚</text><text x="170" y="124" fill="var(--blktxt)">V−</text><text x="200" y="124" fill="var(--blktxt)">V+</text>
+    </g>
+    <g fill="#d9dee3" stroke="#6b7680"><circle cx="80" cy="104" r="7"/><circle cx="110" cy="104" r="7"/><circle cx="140" cy="104" r="7"/><circle cx="170" cy="104" r="7"/><circle cx="200" cy="104" r="7"/></g>
+
+    <!-- Entrada AC -->
+    <g stroke-width="2.5" fill="none">
+      <path d="M80 130 V186 H58" stroke="var(--acl)"/>
+      <path d="M110 130 V198 H58" stroke="var(--acn)"/>
+      <path d="M140 130 V210 H58" stroke="var(--ace)"/>
+    </g>
+    <rect x="18" y="176" width="40" height="44" rx="6" fill="var(--paper)" stroke="var(--fg)" stroke-width="2"/>
+    <path d="M30 168 V176 M46 168 V176" stroke="var(--fg)" stroke-width="3"/>
+    <text x="18" y="236" font-size="10" font-weight="600" fill="var(--warn)">Clavija 127 V AC</text>
+
+    <!-- V− a GND, V+ por fusible a +12 V -->
+    <path d="M170 130 V140" stroke="var(--gnd)" stroke-width="2.5"/>
+    <use href="#gnd" x="170" y="140"/>
+    <path d="M200 130 V146 H240 V112 M240 82 V55 H665" stroke="var(--v12)" stroke-width="3" fill="none"/>
+    <rect x="233" y="82" width="14" height="30" rx="3" fill="var(--paper)" stroke="var(--fg)" stroke-width="2"/>
+    <text x="252" y="95" font-size="10" fill="var(--muted)">fusible</text><text x="252" y="108" font-size="10" fill="var(--muted)">5 A</text>
+    <text x="460" y="46" text-anchor="middle" font-size="12" font-weight="600" fill="var(--v12)">+12 V</text>
+
+    <!-- Buck XL4016 -->
+    <path d="M300 55 V130" stroke="var(--v12)" stroke-width="3"/>
+    <circle cx="300" cy="55" r="4.5" fill="var(--v12)"/>
+    <rect x="270" y="130" width="180" height="120" rx="6" fill="var(--pcb)"/>
+    <rect x="370" y="146" width="66" height="34" rx="2" fill="#1a1a1a"/>
+    <text x="403" y="170" text-anchor="middle" font-size="18" font-weight="600" fill="#ff5a4a">5.0</text>
+    <text x="300" y="150" text-anchor="middle" font-size="10" font-weight="600" fill="var(--pcbtxt)">IN+</text>
+    <text x="360" y="210" text-anchor="middle" font-size="12" font-weight="600" fill="var(--pcbtxt)">XL4016 buck</text>
+    <text x="360" y="226" text-anchor="middle" font-size="10" fill="var(--pcbtxt)">12 V → 5.0 V</text>
+    <text x="300" y="244" text-anchor="middle" font-size="10" font-weight="600" fill="var(--pcbtxt)">IN−</text>
+    <text x="360" y="244" text-anchor="middle" font-size="10" font-weight="600" fill="var(--pcbtxt)">OUT−</text>
+    <text x="420" y="244" text-anchor="middle" font-size="10" font-weight="600" fill="var(--pcbtxt)">OUT+</text>
+    <use href="#gnd" x="300" y="250"/>
+    <use href="#gnd" x="360" y="250"/>
+
+    <!-- +5 V principal -->
+    <path d="M420 250 V280 H30 V500 H1330 V450" stroke="var(--v5)" stroke-width="3" fill="none"/>
+    <path d="M30 340 H110" stroke="var(--v5)" stroke-width="3"/>
+    <circle cx="30" cy="340" r="4.5" fill="var(--v5)"/>
+    <text x="200" y="273" text-anchor="middle" font-size="12" font-weight="600" fill="var(--v5)">+5 V</text>
+    <text x="40" y="492" font-size="12" font-weight="600" fill="var(--v5)">+5 V</text>
+
+    <!-- Capacitor 100 µF en 12 V -->
+    <path d="M610 55 V70 M610 78 V90" stroke="var(--fg)" stroke-width="2"/>
+    <path d="M598 70 H622 M598 78 H622" stroke="var(--fg)" stroke-width="3"/>
+    <circle cx="610" cy="55" r="4" fill="var(--v12)"/>
+    <use href="#gnd" x="610" y="90"/>
+    <text x="592" y="80" text-anchor="end" font-size="10" fill="var(--muted)">100 µF 25 V</text>
+
+    <!-- Módulo AOD4184 -->
+    <rect x="640" y="120" width="240" height="120" rx="6" fill="var(--pcb)"/>
+    <rect x="648" y="120" width="84" height="32" rx="3" fill="var(--term)"/>
+    <rect x="768" y="120" width="84" height="32" rx="3" fill="var(--term)"/>
+    <circle cx="665" cy="136" r="8" fill="#d9dee3" stroke="#6b7680"/><circle cx="715" cy="136" r="8" fill="#d9dee3" stroke="#6b7680"/>
+    <circle cx="785" cy="136" r="8" fill="#d9dee3" stroke="#6b7680"/><circle cx="835" cy="136" r="8" fill="#d9dee3" stroke="#6b7680"/>
+    <text x="665" y="166" text-anchor="middle" font-size="10" font-weight="600" fill="var(--pcbtxt)">VIN+</text>
+    <text x="715" y="166" text-anchor="middle" font-size="10" font-weight="600" fill="var(--pcbtxt)">VIN−</text>
+    <text x="785" y="166" text-anchor="middle" font-size="10" font-weight="600" fill="var(--pcbtxt)">OUT+</text>
+    <text x="835" y="166" text-anchor="middle" font-size="10" font-weight="600" fill="var(--pcbtxt)">OUT−</text>
+    <rect x="790" y="182" width="62" height="24" rx="2" fill="#1a1a1a"/>
+    <text x="821" y="198" text-anchor="middle" font-size="10" fill="#cfcfcf">D4184</text>
+    <text x="656" y="196" font-size="11" font-weight="600" fill="var(--pcbtxt)">AOD4184 ×1</text>
+    <rect x="680" y="214" width="90" height="26" rx="3" fill="var(--term)"/>
+    <text x="700" y="231" text-anchor="middle" font-size="10" font-weight="600" fill="var(--pcbtxt)">PWM+</text>
+    <text x="750" y="231" text-anchor="middle" font-size="10" font-weight="600" fill="var(--pcbtxt)">PWM−</text>
+    <path d="M665 55 V120" stroke="var(--v12)" stroke-width="3"/>
+    <path d="M715 120 V96 H745" stroke="var(--gnd)" stroke-width="2.5" fill="none"/>
+    <use href="#gnd" x="745" y="96"/>
+    <path d="M750 240 V252" stroke="var(--gnd)" stroke-width="2.5"/>
+    <use href="#gnd" x="750" y="252"/>
+
+    <!-- Salidas a ventiladores en paralelo -->
+    <path d="M785 120 V78 H1088 V150" stroke="var(--v12)" stroke-width="2.5" fill="none"/>
+    <path d="M948 78 V150" stroke="var(--v12)" stroke-width="2.5"/>
+    <path d="M835 120 V104 H1112 V150" stroke="var(--gnd)" stroke-width="2.5" fill="none"/>
+    <path d="M972 104 V150" stroke="var(--gnd)" stroke-width="2.5"/>
+    <circle cx="948" cy="78" r="4" fill="var(--v12)"/><circle cx="972" cy="104" r="4" fill="var(--gnd)"/>
+    <!-- Diodo 1N5819: cátodo a OUT+, ánodo a OUT− -->
+    <circle cx="895" cy="78" r="3.5" fill="var(--fg)"/><circle cx="895" cy="104" r="3.5" fill="var(--fg)"/>
+    <path d="M895 78 V84 M895 98 V104" stroke="var(--fg)" stroke-width="2"/>
+    <path d="M887 84 H903" stroke="var(--fg)" stroke-width="3"/>
+    <path d="M887 98 L903 98 L895 86 Z" fill="var(--fg)"/>
+    <text x="895" y="122" text-anchor="middle" font-size="10" fill="var(--muted)">1N5819</text>
+    <use href="#fanIcon" x="960" y="190"/>
+    <use href="#fanIcon" x="1100" y="190"/>
+    <text x="960" y="248" text-anchor="middle" font-size="11" font-weight="600" fill="var(--fg)">Ventilador 1</text>
+    <text x="1100" y="248" text-anchor="middle" font-size="11" font-weight="600" fill="var(--fg)">Ventilador 2</text>
+    <text x="1030" y="266" text-anchor="middle" font-size="10" fill="var(--muted)">12 V · rojo a OUT+, negro a OUT− (en paralelo)</text>
+
+    <!-- PWM -->
+    <path d="M700 240 V310" stroke="var(--sig)" stroke-width="3"/>
+    <text x="707" y="282" font-size="11" font-weight="600" fill="var(--sig)">GPIO1</text>
+
+    <!-- ========== ESP32-S2 (solo pines usados) ========== -->
+    <rect x="110" y="310" width="1140" height="100" rx="8" fill="var(--paper)" stroke="var(--fg)" stroke-width="2"/>
+    <use href="#pinTop" x="700" y="312"/>
+    <text x="700" y="334" text-anchor="middle" font-size="11" font-weight="600" fill="var(--sig)">IO1</text>
+    <text x="122" y="344" font-size="11" font-weight="600" fill="var(--v5)">5V/VBUS</text>
+    <text x="122" y="384" font-size="11" font-weight="600" fill="var(--fg)">GND</text>
+    <path d="M110 380 H82" stroke="var(--gnd)" stroke-width="2.5"/>
+    <use href="#gnd" x="82" y="380"/>
+    <text x="430" y="356" text-anchor="middle" font-size="18" font-weight="600" fill="var(--fg)">ESP32-S2</text>
+    <text x="430" y="376" text-anchor="middle" font-size="11" fill="var(--muted)">S2 Mini / DevKitM · pines usados</text>
+    <g font-size="10" font-weight="600" fill="var(--sig)" text-anchor="middle">
+      <text x="145" y="400">IO2</text><text x="275" y="400">IO3</text><text x="405" y="400">IO4</text><text x="535" y="400">IO5</text>
+      <text x="700" y="400">IO6</text><text x="730" y="400">IO7</text><text x="760" y="400">IO8</text><text x="790" y="400">IO9</text>
+      <text x="975" y="400">IO10</text>
+    </g>
+
+    <!-- Señales: rectas, sin cruces entre ellas -->
+    <g stroke="var(--sig)" stroke-width="2.5">
+      <path d="M145 410 V560 M275 410 V560 M405 410 V560 M535 410 V560"/>
+      <path d="M700 410 V560 M730 410 V560 M760 410 V560 M790 410 V560"/>
+      <path d="M975 410 V560"/>
+    </g>
+
+    <!-- Bajadas de +5 V -->
+    <g stroke="var(--v5)" stroke-width="2.5">
+      <path d="M190 500 V560 M320 500 V560 M450 500 V560 M580 500 V560 M840 500 V560 M1015 500 V560"/>
+    </g>
+    <g fill="var(--v5)">
+      <circle cx="190" cy="500" r="4"/><circle cx="320" cy="500" r="4"/><circle cx="450" cy="500" r="4"/><circle cx="580" cy="500" r="4"/><circle cx="840" cy="500" r="4"/><circle cx="1015" cy="500" r="4"/>
+    </g>
+
+    <!-- Humidificadores -->
+    <use href="#hum" x="120" y="560"/><use href="#hum" x="250" y="560"/><use href="#hum" x="380" y="560"/><use href="#hum" x="510" y="560"/>
+    <g stroke="var(--gnd)" stroke-width="2.5"><path d="M170 660 V672 M300 660 V672 M430 660 V672 M560 660 V672"/></g>
+    <use href="#gnd" x="170" y="672"/><use href="#gnd" x="300" y="672"/><use href="#gnd" x="430" y="672"/><use href="#gnd" x="560" y="672"/>
+    <g fill="var(--fg)" font-size="11" font-weight="600" text-anchor="middle">
+      <text x="170" y="712">Humidif. 1</text><text x="300" y="712">Humidif. 2</text><text x="430" y="712">Humidif. 3</text><text x="560" y="712">Humidif. 4</text>
+    </g>
+    <text x="365" y="730" text-anchor="middle" font-size="10" fill="var(--muted)">S = señal · V = 5 V · G = GND</text>
+
+    <!-- ULN2003 + 28BYJ-48 -->
+    <rect x="680" y="560" width="200" height="100" rx="5" fill="var(--uln)"/>
+    <g font-size="10" font-weight="600" fill="var(--pcbtxt)" text-anchor="middle">
+      <text x="700" y="578">IN1</text><text x="730" y="578">IN2</text><text x="760" y="578">IN3</text><text x="790" y="578">IN4</text>
+      <text x="840" y="578">+</text><text x="860" y="652">−</text>
+    </g>
+    <text x="770" y="614" text-anchor="middle" font-size="13" font-weight="600" fill="var(--pcbtxt)">ULN2003</text>
+    <text x="770" y="630" text-anchor="middle" font-size="10" fill="var(--pcbtxt)">jumper puesto</text>
+    <path d="M860 660 V672" stroke="var(--gnd)" stroke-width="2.5"/>
+    <use href="#gnd" x="860" y="672"/>
+    <g stroke-width="2.5" fill="none">
+      <path d="M754 660 V694" stroke="#3a6fd8"/><path d="M762 660 V694" stroke="#e05aa8"/>
+      <path d="M770 660 V694" stroke="#f0c020"/><path d="M778 660 V694" stroke="#f08a20"/><path d="M786 660 V694" stroke="#e03a2a"/>
+    </g>
+    <circle cx="770" cy="726" r="32" fill="var(--paper)" stroke="var(--fan)" stroke-width="2.5"/>
+    <circle cx="770" cy="726" r="8" fill="#c9a24a"/>
+    <text x="770" y="776" text-anchor="middle" font-size="11" font-weight="600" fill="var(--fg)">28BYJ-48 (5 V)</text>
+
+    <!-- Servo -->
+    <rect x="950" y="560" width="130" height="90" rx="5" fill="var(--paper)" stroke="var(--fg)" stroke-width="2"/>
+    <circle cx="1015" cy="610" r="14" fill="none" stroke="var(--fan)" stroke-width="2"/>
+    <path d="M1015 610 L1037 600" stroke="var(--fan)" stroke-width="5" stroke-linecap="round"/>
+    <text x="975" y="578" text-anchor="middle" font-size="9" font-weight="600" fill="var(--fg)">S</text>
+    <text x="1015" y="578" text-anchor="middle" font-size="9" font-weight="600" fill="var(--fg)">+</text>
+    <text x="1045" y="644" text-anchor="middle" font-size="9" font-weight="600" fill="var(--fg)">−</text>
+    <path d="M1045 650 V662" stroke="var(--gnd)" stroke-width="2.5"/>
+    <use href="#gnd" x="1045" y="662"/>
+    <text x="1015" y="712" text-anchor="middle" font-size="11" font-weight="600" fill="var(--fg)">Servo</text>
+    <text x="1015" y="728" text-anchor="middle" font-size="10" fill="var(--muted)">naranja · rojo · marrón</text>
+
+        <!-- ========== DHT22 en GPIO11, 3.3 V ========== -->
+    <g font-size="10" font-weight="600" text-anchor="middle">
+      <text x="1150" y="400" fill="var(--sig)">IO11</text><text x="1190" y="400" fill="var(--v33)">3V3</text>
+    </g>
+    <path d="M1150 410 V560" stroke="var(--sig)" stroke-width="2.5"/>
+    <path d="M1190 410 V560" stroke="var(--v33)" stroke-width="2.5"/>
+    <path d="M1150 530 H1158 M1182 530 H1190" stroke="var(--fg)" stroke-width="2"/>
+    <rect x="1158" y="524" width="24" height="12" rx="2" fill="var(--paper)" stroke="var(--fg)" stroke-width="2"/>
+    <circle cx="1150" cy="530" r="3.5" fill="var(--sig)"/><circle cx="1190" cy="530" r="3.5" fill="var(--v33)"/>
+    <text x="1170" y="518" text-anchor="middle" font-size="9" fill="var(--muted)">10 kΩ</text>
+    <rect x="1120" y="560" width="120" height="90" rx="5" fill="var(--paper)" stroke="var(--fg)" stroke-width="2"/>
+    <g stroke="var(--muted)" stroke-width="2"><path d="M1142 594 H1218 M1142 606 H1218 M1142 618 H1218"/></g>
+    <g font-size="9" font-weight="600" fill="var(--fg)" text-anchor="middle">
+      <text x="1150" y="578">DATA</text><text x="1190" y="578">VCC</text><text x="1215" y="644">GND</text>
+    </g>
+    <path d="M1215 650 V662" stroke="var(--gnd)" stroke-width="2.5"/>
+    <use href="#gnd" x="1215" y="662"/>
+    <text x="1180" y="712" text-anchor="middle" font-size="11" font-weight="600" fill="var(--fg)">DHT22</text>
+    <text x="1180" y="728" text-anchor="middle" font-size="10" fill="var(--muted)">humedad y temperatura</text>
+
+    <!-- ========== ESP32-CAM en el lateral ========== -->
+    <rect x="1310" y="300" width="110" height="150" rx="6" fill="var(--blk)"/>
+    <circle cx="1395" cy="326" r="13" fill="#2b2f33" stroke="#8a9096" stroke-width="2"/>
+    <circle cx="1395" cy="326" r="5" fill="#5a7fb0"/>
+    <g font-size="9" font-weight="600" fill="var(--blktxt)">
+      <text x="1316" y="345">IO14 RX</text><text x="1316" y="385">IO13 TX</text>
+    </g>
+    <text x="1365" y="412" text-anchor="middle" font-size="12" font-weight="600" fill="var(--blktxt)">ESP32-CAM</text>
+    <text x="1365" y="426" text-anchor="middle" font-size="9" fill="var(--blktxt)">en el lateral</text>
+    <g font-size="9" font-weight="600" fill="var(--blktxt)" text-anchor="middle"><text x="1330" y="444">5V</text><text x="1400" y="444">GND</text></g>
+    <path d="M1400 450 V462" stroke="var(--gnd)" stroke-width="2.5"/>
+    <use href="#gnd" x="1400" y="462"/>
+    <g font-size="9" font-weight="600" fill="var(--sig)" text-anchor="end">
+      <text x="1244" y="345">IO12 TX</text><text x="1244" y="385">IO13 RX</text>
+    </g>
+    <g stroke="var(--sig)" stroke-width="2" stroke-dasharray="6 4" fill="none">
+      <path d="M1250 342 H1306" marker-end="url(#arr)"/>
+      <path d="M1310 382 H1254" marker-end="url(#arr)"/>
+    </g>
+    <text x="1280" y="424" text-anchor="middle" font-size="9" fill="var(--muted)">UART</text>
+    <text x="1280" y="436" text-anchor="middle" font-size="9" fill="var(--muted)">opcional</text>
+
+    <text x="30" y="808" font-size="11" fill="var(--muted)">Punto = unión. Cruce sin punto = no conectado. Todos los símbolos ⏚ son el mismo GND común (Radox −, buck, MOSFET, ESP32 y cargas).</text>
+  </svg>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--acl)"></i>127 V AC</span>
+    <span><i style="background:var(--v12)"></i>+12 V</span>
+    <span><i style="background:var(--v5)"></i>+5 V (buck)</span>
+    <span><i style="background:var(--gnd)"></i>GND común</span>
+    <span><i style="background:var(--v33)"></i>+3.3 V del ESP32-S2</span>
+    <span><i style="background:var(--sig)"></i>Señal 3.3 V</span>
+    <span><i style="background:repeating-linear-gradient(90deg,var(--sig) 0 6px,transparent 6px 10px)"></i>UART opcional</span>
+  </div>
+</div>
+
+<div class="grid">
+  <section class="sheet">
+    <h2>Tabla de pines</h2>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>GPIO</th><th>Va a</th><th>Función</th></tr></thead>
+      <tbody>
+        <tr><td class="pin">GPIO1</td><td>AOD4184 PWM+</td><td>PWM de los 2 ventiladores</td></tr>
+        <tr><td class="pin">GPIO2</td><td>Humidificador 1 · S</td><td>Encendido / apagado</td></tr>
+        <tr><td class="pin">GPIO3</td><td>Humidificador 2 · S</td><td>Encendido / apagado</td></tr>
+        <tr><td class="pin">GPIO4</td><td>Humidificador 3 · S</td><td>Encendido / apagado</td></tr>
+        <tr><td class="pin">GPIO5</td><td>Humidificador 4 · S</td><td>Encendido / apagado</td></tr>
+        <tr><td class="pin">GPIO6</td><td>ULN2003 IN1</td><td>Bobina A del paso a paso</td></tr>
+        <tr><td class="pin">GPIO7</td><td>ULN2003 IN2</td><td>Bobina B</td></tr>
+        <tr><td class="pin">GPIO8</td><td>ULN2003 IN3</td><td>Bobina C</td></tr>
+        <tr><td class="pin">GPIO9</td><td>ULN2003 IN4</td><td>Bobina D</td></tr>
+        <tr><td class="pin">GPIO10</td><td>Servo · naranja</td><td>PWM 50 Hz</td></tr>
+        <tr><td class="pin">GPIO11</td><td>DHT22 · DATA (10 kΩ a 3.3 V)</td><td>Humedad y temperatura</td></tr>
+        <tr><td class="pin">GPIO12</td><td>ESP32-CAM · IO14</td><td>UART TX (opcional)</td></tr>
+        <tr><td class="pin">GPIO13</td><td>ESP32-CAM · IO13</td><td>UART RX (opcional)</td></tr>
+        <tr><td class="pin">3V3</td><td>DHT22 · VCC</td><td>Alimentación del sensor</td></tr>
+        <tr><td class="pin">5V/VBUS</td><td>+5 V del buck</td><td>Alimentación de la placa</td></tr>
+        <tr><td class="pin">GND</td><td>GND común</td><td>Referencia de todo</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="small">Libres para después (botones, más sensores): GPIO14 a GPIO18, GPIO21, GPIO33 a GPIO40. Evita GPIO0, 45 y 46 (arranque), 19 y 20 (USB), 26 (PSRAM) y 43/44 (UART).</p>
+  </section>
+
+  <section class="sheet">
+    <h2>Consumo estimado</h2>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>Carga en 5 V</th><th style="text-align:right">Normal</th><th style="text-align:right">Pico</th></tr></thead>
+      <tbody>
+        <tr><td>4 humidificadores (≈0.3 A c/u)</td><td class="num">1.20 A</td><td class="num">1.40 A</td></tr>
+        <tr><td>Servo</td><td class="num">0.30 A</td><td class="num">0.80 A</td></tr>
+        <tr><td>28BYJ-48 + ULN2003</td><td class="num">0.24 A</td><td class="num">0.30 A</td></tr>
+        <tr><td>ESP32-S2</td><td class="num">0.15 A</td><td class="num">0.30 A</td></tr>
+        <tr><td>ESP32-CAM (Wi-Fi + cámara)</td><td class="num">0.25 A</td><td class="num">0.50 A</td></tr>
+        <tr><td>DHT22 (desde 3V3)</td><td class="num">&lt; 0.01 A</td><td class="num">&lt; 0.01 A</td></tr>
+        <tr class="total"><td>Total 5 V</td><td class="num">2.2 A</td><td class="num">3.3 A</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="small">Lado 12 V: ventiladores ≈ 0.3 A más la entrada del buck ≈ 1.5 A en pico. En total ≈ 1.8 A de los 5 A de la Radox. Las cifras son aproximadas; mide con el display del buck si quieres el dato real.</p>
+  </section>
+</div>
+
+<section class="sheet" style="display:flex;flex-direction:column;gap:12px">
+  <h2>Antes de conectar</h2>
+  <ol>
+    <li><strong class="w">Lado de 127 V AC:</strong> haz la conexión de L, N y tierra con todo desenchufado y deja puesta la tapa transparente de la bornera. Fase en L, neutro en N y el cable verde de tierra en ⏚.</li>
+    <li><strong class="w">GPIO25 y GPIO26 no sirven en el ESP32-S2.</strong> El GPIO25 no existe en este chip y el 26 lo usa la memoria PSRAM. Por eso el PWM de los ventiladores pasó al GPIO1.</li>
+    <li>Ajusta el buck a <strong>5.0 V</strong> con su perilla, mirando el display, antes de conectar cualquier carga. Si se queda en 12 V, quema el ESP32 y los humidificadores.</li>
+    <li>Los dos ventiladores van <strong>en paralelo</strong> en OUT+ y OUT− del único AOD4184, con un solo diodo 1N5819 (raya hacia OUT+). Si tu módulo tiene solo 3 tornillos azules, VIN+ y OUT+ son el mismo tornillo.</li>
+    <li>Tu módulo tiene un optoacoplador EL817 en la entrada PWM: funciona con 3.3 V, pero usa una frecuencia PWM baja (≈ 500 Hz a 1 kHz).</li>
+    <li>Une todas las tierras en un solo punto: Radox −, buck, PWM− del MOSFET, GND del ESP32 y el G/− de cada carga. Sin GND común nada responde bien.</li>
+    <li>Servo: pon un capacitor de 470 a 1000 µF entre su + y − si se reinicia el ESP32 al moverse.</li>
+    <li>ESP32-CAM: aliméntala del mismo +5 V del buck (pin 5V, no el de 3.3 V) y pon un capacitor de 470 µF cerca de su pin 5V si se reinicia con el Wi-Fi encendido. Puede trabajar sola por Wi-Fi; los dos cables UART solo hacen falta si quieres que hable directo con el ESP32-S2. Desconéctalos mientras la programas.</li>
+    <li>DHT22: aliméntalo con 3.3 V del ESP32-S2 para que su señal no pase de 3.3 V. Si tu sensor viene en placa de 3 pines, ya trae la resistencia de 10 kΩ. Ponlo fuera del chorro de niebla y léelo cada 2 s como mínimo.</li>
+    <li>Si tu placa no tiene diodo entre el USB y el pin 5V/VBUS, desconecta el +5 V del buck mientras la programas por USB.</li>
+    <li>Cable: 18 AWG para las líneas de 12 V y 5 V principales, 22 a 26 AWG para las señales.</li>
+  </ol>
+</section>
+</div>
+
+</body></html>
